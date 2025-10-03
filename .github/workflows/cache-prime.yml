@@ -1,0 +1,41 @@
+name: Cache Prime Demo
+
+on:
+  workflow_dispatch:   # lets you run it manually from the Actions tab
+  push:
+    branches: [ main ] # optional — adjust to your default branch
+
+jobs:
+  prime-cache:
+    name: Prime cache (demo)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create demo dependency files
+        run: |
+          # Create a folder that we'll cache. Replace this with your real deps folder,
+          # e.g. node_modules, ~/.cache/pip, ~/.cargo/registry, .m2/repository, etc.
+          mkdir -p deps
+          echo "primed at $(date -u)" > deps/marker.txt
+          ls -la deps
+
+      - name: Restore or save cache (actions/cache)
+        id: cache-step
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: cache-d7b2d5d
+
+      - name: prime-cache-d7b2d5d
+        run: |
+          echo "prime-cache-d7b2d5d -> steps.cache-step.outputs.cache-hit='${{ steps.cache-step.outputs.cache-hit }}'"
+          if [ "${{ steps.cache-step.outputs.cache-hit }}" = "true" ]; then
+            echo "RESULT: cache HIT (exact key matched)."
+          elif [ -z "${{ steps.cache-step.outputs.cache-hit }}" ]; then
+            echo "RESULT: cache MISS (no exact match; no restore happened)."
+          else
+            echo "RESULT: cache RESTORED via restore-keys (cache-hit output is not 'true')."
+          fi
